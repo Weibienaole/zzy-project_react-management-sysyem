@@ -1,0 +1,1 @@
+// export const SET_NAV_TYPE = 'core/SET_NAV_TYPE'
