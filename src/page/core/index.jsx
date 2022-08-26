@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import PropsType from 'prop-types'
 import { connect } from 'react-redux'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -6,16 +6,23 @@ import { BreadCrumds, CoreContainer, HeaderBar, LeftBar } from './style'
 import { routeList } from '../../router'
 import { getUrlData } from '../../api/utils'
 
+window.__CORE__ = {}
+
 let debounceTimer
 const headerBarRoutes = routeList[0].children
-const Core = () => {
+const Core = (props) => {
+  const { setThemeKeyDispatch } = props
   const navigate = useNavigate()
   const location = useLocation()
+  const pageContainerRef = useRef()
 
   const [navs, setNavs] = useState([])
-  const [navRoute, setRouteMsg] = useState(null)
+  const [navRoute, setNavRoute] = useState(null)
   // 默认选中til-header
   const [selectNavIndex, setSelectNavIndex] = useState(-1)
+
+  // 面包屑til
+  const [breadCrumdTil, setBreadcrumdTIl] = useState('')
 
   //  是否显示导航栏
   const [hasNav, setHasNav] = useState(true)
@@ -26,6 +33,7 @@ const Core = () => {
     if (isOpen) {
       setHasNav(false)
     }
+    initWindowMethpds()
     window.addEventListener('popstate', browserDebounceFn)
     return () => {
       window.removeEventListener('popstate', browserDebounceFn)
@@ -39,13 +47,21 @@ const Core = () => {
       selectNavIndex === -1 ||
       location.pathname !== headerBarRoutes[selectNavIndex]?.to
     ) {
+      // 每次切换页面之后滚动条重置
       fixNavActive()
     }
-    // if(location.pathname === '/home/accountSetting'){
-    //   console.log('rediect');
-    //   navigate('/', {replace: true})
-    // }
   }, [location])
+
+  // 初始化全局方法
+  const initWindowMethpds = () => {
+    // 设置面包屑标题全局函数
+    window.__CORE__.breadCrumdSetTitle = (val) => {
+      let timer = setTimeout(() => {
+        setBreadcrumdTIl(val)
+        clearTimeout(timer)
+      }, 200)
+    }
+  }
 
   // 浏览器前进后退
   const browserMove = () => {
@@ -76,7 +92,7 @@ const Core = () => {
   // 导航切换
   const switchNav = (nav, index) => {
     if (index === +selectNavIndex) return
-    navigate(nav.to)
+    navigate(nav.defaultPath || nav.to)
     setSelectNavIndex(index)
     findRouteActive(null, nav)
   }
@@ -104,7 +120,10 @@ const Core = () => {
   const findRouteActive = (route, nowFatherNav = {}, to = nowFatherNav.to) => {
     if (!route) {
       // 先找路径对得上的
-      let findNav = nowFatherNav.children.find((r) => r.path === to)
+      let findNav = nowFatherNav.children.find((r) => {
+        let { path, toPath } = returnPurePath(r.path, to)
+        return path && path === toPath
+      })
       // 如果找不到就判断是否为首页(首页没有path) 是的话就是首页的默认选择
       if (!findNav && nowFatherNav.to === '/') {
         findNav = nowFatherNav.children.find((r) => r.isDefault)
@@ -112,7 +131,12 @@ const Core = () => {
       route = findNav
     }
     const { path, params, hidden = false } = route
-    setRouteMsg({ path, params, hidden })
+    if (route.isDefault) {
+      setNavRoute({ path: '/', params })
+    } else if (navRoute?.path !== path) {
+      setNavRoute({ path, params, hidden })
+    }
+    setBreadcrumdTIl(params?.name)
   }
 
   const renderHeaderBar = () => {
@@ -126,7 +150,6 @@ const Core = () => {
                 className={
                   index === +selectNavIndex ? 'navItem active' : 'navItem'
                 }
-                to={nav.to}
                 key={nav.key}
                 onClick={() => switchNav(nav, index)}
               >
@@ -157,10 +180,12 @@ const Core = () => {
               <div className="navTil item">{nav.name}</div>
             ) : (
               <NavLink
-                className={({ isActive }) =>
-                  isActive ? 'navItem active item' : 'navItem item'
+                className={
+                  nav.path === navRoute.path
+                    ? 'navItem active item'
+                    : 'navItem item'
                 }
-                to={nav.isDefault ? '/' : nav.path}
+                to={nav.isDefault ? '/' : nav.defaultPath || nav.path}
                 key={nav.path || '/'}
                 onClick={(e) => clickNav(e, nav, nav.path || '/')}
               >
@@ -178,7 +203,7 @@ const Core = () => {
       <BreadCrumds>
         <div className="content">
           <div className="lef">
-            <span className="navName">{navRoute?.params?.name || ''}</span>
+            <span className="navName">{breadCrumdTil}</span>
           </div>
           <div className="rig">rig</div>
         </div>
@@ -186,24 +211,37 @@ const Core = () => {
     )
   }
   return (
-    <CoreContainer>
+    <CoreContainer id="Core_Page_Wrapper">
       {/* 顶部栏 */}
       {hasNav && renderHeaderBar()}
       <div className="coreContentContainer">
         {/* 左侧栏 */}
         {hasNav && renderLeftBar()}
-        <div className="coreContent">
+        <div className="coreContent" ref={pageContainerRef}>
           {/* 面包屑 */}
           {renderBreadCrumds()}
           {/* 内容 */}
           <div className="coreView">
             <Outlet />
           </div>
+          <EnterpriseSays />
         </div>
       </div>
     </CoreContainer>
   )
 }
+
+Core.defaultProps = {}
+
+Core.propTypes = {}
+
+const mapStateToProps = (state) => ({
+})
+
+const mapDispatchToProps = (dispatch) => ({})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Core)
+
 const debounce = (f, t) => {
   return (...args) => {
     if (debounceTimer) clearTimeout(debounceTimer)
@@ -214,14 +252,16 @@ const debounce = (f, t) => {
   }
 }
 
-Core.defaultProps = {}
-
-Core.propTypes = {
-  history: PropsType.func
+// 拿到除去参数之后的地址
+const returnPurePath = (path, toPath) => {
+  if (!path) return '/'
+  const paramIndex = path.lastIndexOf('/:')
+  if (paramIndex !== -1) {
+    return returnPurePath(
+      path.slice(0, paramIndex),
+      toPath.slice(0, paramIndex)
+    )
+  } else {
+    return { path, toPath }
+  }
 }
-
-const mapStateToProps = (state) => ({})
-
-const mapDispatchToProps = (dispatch) => ({})
-
-export default connect(mapStateToProps, mapDispatchToProps)(Core)

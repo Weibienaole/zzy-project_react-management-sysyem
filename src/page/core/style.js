@@ -1,8 +1,11 @@
 import styled from 'styled-components'
 import globalSty from '@/api/global-style'
+import { getUrlData } from '../../api/utils'
 
-const minWid = '1080px'
+const minWid = '1260px'
 
+const { isOpen } = getUrlData(window.location.hash)
+const occupiedHei = isOpen === '1' ? 0 : 50
 export const CoreContainer = styled.div`
   min-width: ${minWid};
   width: 100vw;
@@ -14,18 +17,20 @@ export const CoreContainer = styled.div`
   position: relative;
   .coreContentContainer {
     width: 100%;
-    height: calc(100vh - 50px);
+    height: calc(100vh - ${occupiedHei}px);
     display: flex;
     .coreContent {
       flex: 1;
       height: 100%;
+      overflow-y: auto;
+      background-color: #f9f9f9;
       .coreView {
         max-width: 1200px;
-        margin: 0 auto;
+        margin: 20px auto 0;
         width: 75%;
-        min-width: 750px;
-        height: calc(100% - 50px);
-        overflow-y: auto;
+        min-width: 1000px;
+        /* 100% - 面包屑 - 底部声明 - 20px */
+        min-height: calc(100% - 90px - 50px - 20px);
         position: relative;
       }
     }
@@ -54,10 +59,7 @@ export const HeaderBar = styled.div`
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: '微软雅黑';
-        font-weight: 400;
-        font-style: normal;
-        font-size: 13px;
+        ${globalSty.defaultFont()};
         color: #ffffff;
         cursor: pointer;
       }
@@ -65,11 +67,6 @@ export const HeaderBar = styled.div`
         background-color: rgba(255, 255, 255, 0.2);
       }
     }
-  }
-  .rightView {
-    width: 420px;
-    height: 100%;
-    display: flex;
   }
 `
 
@@ -90,20 +87,14 @@ export const LeftBar = styled.div`
   }
   .navTil {
     height: 50px;
-    font-family: '微软雅黑';
-    font-weight: 400;
-    font-style: normal;
+    ${globalSty.defaultFont()};
     color: #999999;
     font-size: 15px;
     background: #f2f2f2;
   }
   .navItem {
     height: 40px;
-    font-family: '微软雅黑';
-    font-weight: 410;
-    font-style: normal;
-    font-size: 12px;
-    color: #666666;
+    ${globalSty.defaultFont()};
   }
   .active {
     background-color: #fff;
@@ -125,5 +116,19 @@ export const BreadCrumds = styled.div`
     margin: 0 auto;
     width: 75%;
     min-width: 750px;
+    .navName {
+      ${globalSty.defaultFont()};
+      color: #999999;
+      font-size: 14px;
+      padding-left: 5px;
+      border-left: 5px solid ${globalSty.basicStyle.color};
+    }
+    .reload {
+      svg {
+        width: 15px;
+        height: 15px;
+        margin-right: 5px;
+      }
+    }
   }
 `
