@@ -43,10 +43,8 @@ const Core = (props) => {
   // 路由监听
   useEffect(() => {
     // nav选中丢失(刷新) 或者 当前路径和实际选中路径不符
-    if (
-      selectNavIndex === -1 ||
-      location.pathname !== headerBarRoutes[selectNavIndex]?.to
-    ) {
+    const { path, toPath } = returnPurePath(navRoute?.path, location.pathname)
+    if (selectNavIndex === -1 || path !== toPath) {
       // 每次切换页面之后滚动条重置
       fixNavActive()
     }
@@ -255,13 +253,18 @@ const debounce = (f, t) => {
 // 拿到除去参数之后的地址
 const returnPurePath = (path, toPath) => {
   if (!path) return '/'
-  const paramIndex = path.lastIndexOf('/:')
-  if (paramIndex !== -1) {
-    return returnPurePath(
-      path.slice(0, paramIndex),
-      toPath.slice(0, paramIndex)
-    )
+  const findIdx = path.indexOf('/:')
+  if (findIdx !== -1) {
+    const pathArr = path.split('/:')
+    // 拿到path的实际传递参数数量
+    const paramsLong = pathArr.length - 1
+
+    const toPathArr = toPath.split('/')
+    const pureToPath = toPathArr.slice(0, toPathArr.length - paramsLong).join('/')
+
+    return { path: pathArr[0], toPath: pureToPath }
   } else {
     return { path, toPath }
   }
 }
+
