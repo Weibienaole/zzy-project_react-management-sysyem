@@ -6,35 +6,26 @@ import React, { Component } from 'react'
   3.无法捕获 事件处理，异步代码等错误
 */
 
-const style = {
-  'font-size': '30px',
-  color: 'red',
-  margin: '20px',
-  'word-break': 'break-word'
-}
 export default class ErrorBoundary extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      hasError: false
+      hasError: false,
     }
   }
   static getDerivedStateFromError(error) {
-    console.error(error, '更新state 使下一次的UI是降级后的UI')
+    // console.error(error, '更新state 使下一次的UI是降级后的UI')
     return { hasError: true }
   }
-  componentDidCatch(error, errorInfo) {
-    console.log(error, errorInfo, '将报错上传至服务器')
+  renderCustomErr() {
+    return <div>error</div>
+   
   }
   render() {
-    if (this.state.hasError)
-      return (
-        <div style={style} className="errorBoundary-component_zzyDevtools">
-          Something was wrong, please open the console to check the printing, or
-          contact the Developer.
-          <br />
-        </div>
-      )
-    return this.props.children
+    if (this.state.hasError) {
+      return this.renderCustomErr()
+    } else {
+      return this.props.children
+    }
   }
 }

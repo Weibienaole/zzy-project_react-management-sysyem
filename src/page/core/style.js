@@ -1,7 +1,7 @@
 import styled from 'styled-components'
-import globalSty from '@/api/global-style'
-import { getUrlData } from '../../api/utils'
-
+import globalSty from '../../utils/global-style'
+import { getUrlData } from '../../utils/index'
+console.log(globalSty, 'globalSty')
 const minWid = '1260px'
 
 const { isOpen } = getUrlData(window.location.hash)
@@ -32,16 +32,22 @@ export const CoreContainer = styled.div`
         /* 100% - 面包屑 - 底部声明 - 20px */
         min-height: calc(100% - 90px - 50px - 20px);
         position: relative;
+        .loadPageSpin {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+        }
       }
     }
   }
 `
 
-export const HeaderBar = styled.div`
+export const HeaderBarSty = styled.div`
   width: 100vw;
   min-width: ${minWid};
   height: 50px;
-  background-color: #3498db;
+  background-color: rgba(71, 77, 92, 0.9);
   display: flex;
   justify-content: space-between;
   .leftView {
@@ -70,7 +76,7 @@ export const HeaderBar = styled.div`
   }
 `
 
-export const LeftBar = styled.div`
+export const LeftBarSty = styled.div`
   width: 180px;
   height: 100%;
   background-color: #eaedf1;
@@ -100,9 +106,60 @@ export const LeftBar = styled.div`
     background-color: #fff;
     color: rgba(26, 188, 156, 0.8);
   }
+
+  .leftMenuContainer {
+    background: none;
+    /* 与二级收缩组并列的二级导航 */
+    > .ant-menu-item {
+      margin-bottom: 0 !important;
+      height: 50px;
+    }
+    .ant-menu-item {
+      margin: 0;
+      background-color: #eaedf1;
+      border-bottom: 1px solid ${globalSty.basicStyle.borderColor};
+    }
+    .ant-menu-title-content {
+      a {
+        font-family: 微软雅黑;
+        font-weight: 400;
+        font-size: 14px;
+      }
+    }
+    .ant-menu-item::after {
+      display: none;
+    }
+    .ant-menu-item a:hover,
+    .ant-menu-item-active,
+    .ant-menu-item-selected,
+    .ant-menu-submenu-selected,
+    .ant-menu-item-selected a,
+    .ant-menu-item-selected a:hover,
+    .ant-menu-submenu:hover > .ant-menu-submenu-title,
+    .ant-menu-submenu:hover
+      > .ant-menu-submenu-title
+      > .ant-menu-submenu-arrow {
+      color: ${globalSty.basicStyle.color} !important;
+    }
+    .ant-menu-item-selected {
+      background-color: #fff !important;
+    }
+
+    .ant-menu-submenu {
+      .ant-menu-submenu-title {
+        height: 50px !important;
+        line-height: 50px !important;
+        margin: 0;
+        background: #f3f3f3;
+      }
+    }
+    .ant-menu-inline .ant-menu-item:not(:last-child) {
+      margin-bottom: 0;
+    }
+  }
 `
 
-export const BreadCrumds = styled.div`
+export const BreadCrumdsSty = styled.div`
   height: 50px;
   width: 100%;
   background: #f3f3f3;
@@ -123,11 +180,14 @@ export const BreadCrumds = styled.div`
       padding-left: 5px;
       border-left: 5px solid ${globalSty.basicStyle.color};
     }
-    .reload {
-      svg {
-        width: 15px;
-        height: 15px;
-        margin-right: 5px;
+    .rig {
+      display: flex;
+      .breadCrumdsIcon {
+        svg {
+          width: 15px;
+          height: 15px;
+          margin-right: 5px;
+        }
       }
     }
   }

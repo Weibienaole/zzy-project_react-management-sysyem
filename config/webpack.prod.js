@@ -57,28 +57,27 @@ module.exports = merge(webpackBase, {
           name: 'vendor',
           chunks: 'initial',
           test: /[\\/]node_modules[\\/]/,
-          minSize: 1024, // 小于1kb的文件不进行拆分
           maxSize: 100 * 1024, // 大于100kb的文件尝试拆分为小文件
-          // 拆分前必须共享模块的最小 chunks 数
-          minChunks: 2,
           priority: 10, // 权重
+          minSize: 10 * 1024,
         },
         // 缓存组
         commons: {
           test: /[\\/]src[\\/]/,
           name: 'commons',
           chunks: 'all',
-          minSize: 1024 * 20,
+          maxInitialSize: 200 * 1024,
+          minSize: 20 * 1024,
           minChunks: 2,
           // 如果当前 chunk 包含已从主 bundle 中拆分出的模块，则它将被重用，而不是生成新的模块
-          reuseExistingChunk: true,
+          reuseExistingChunk: true
         },
         default: {
-          minChunks: 2,
+          minSize: 10 * 1024,
           priority: -20,
-          minSize: 1024 * 20,
+          // 如果当前 chunk 包含已从主 bundle 中拆分出的模块，则它将被重用，而不是生成新的模块
           reuseExistingChunk: true,
-          name(module, chunks, cacheGroupKey) {
+          name(module, _, cacheGroupKey) {
             const moduleFileName = module
               .identifier()
               .split('/')

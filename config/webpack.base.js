@@ -8,6 +8,8 @@ const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 // 在html中引入文件
 const AddAssetHtmlWebpackPlugin = require('add-asset-html-webpack-plugin')
+// antd dayjs代替moment
+const AntdDayjsWebpackPlugin = require('antd-dayjs-webpack-plugin')
 
 const DllPluginMethods = require('./DllPluginMethods')
 
@@ -79,7 +81,7 @@ const webpackConfig = {
             test: /\.css$/,
             include: [
               path.resolve(absolutePath, 'src'),
-              path.resolve(absolutePath, 'node_modules/antd'),
+              path.resolve(absolutePath, 'node_modules/antd')
             ],
             use: BasicsCssLoaders
           },
@@ -117,7 +119,7 @@ const webpackConfig = {
           },
           {
             // 图片的转化
-            test: /\.(jpe?g|png|gif|bmp|svg)$/i,
+            test: /\.(jpe?g|png|gif|bmp)$/i,
             type: 'asset',
             include: [path.resolve(absolutePath, 'src')],
             parser: {
@@ -129,6 +131,21 @@ const webpackConfig = {
               publicPath: './',
               filename: 'files/media/[name]_[hash:6].[ext]'
             }
+          },
+          {
+            test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+            use: [
+              {
+                loader: 'babel-loader'
+              },
+              {
+                loader: '@svgr/webpack',
+                options: {
+                  babel: false,
+                  icon: true
+                }
+              }
+            ]
           }
         ]
       }
@@ -162,7 +179,8 @@ const webpackConfig = {
     // 解决全局变量无法显示的异常
     new webpack.DefinePlugin({
       'process.env.DOMAIN': JSON.stringify(process.env.DOMAIN)
-    })
+    }),
+    new AntdDayjsWebpackPlugin()
   ]
 }
 

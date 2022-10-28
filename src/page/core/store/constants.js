@@ -1,1 +1,1 @@
-// export const SET_NAV_TYPE = 'core/SET_NAV_TYPE'
+export const SET_THEME_KEY = 'core/SET_THEME_KEY'

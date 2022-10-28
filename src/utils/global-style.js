@@ -77,6 +77,11 @@ const flexCenter = () => {
   `
 }
 
+const defaultFont = () => {
+  return `
+  `
+}
+
 const basicStyle = {
   borderColor: '#e4e4e4'
 }
@@ -89,7 +94,8 @@ const globalSty = {
   bgFull,
   positionCenter,
   bottomBtn,
-  flexCenter
+  flexCenter,
+  defaultFont
 }
 
 export default globalSty

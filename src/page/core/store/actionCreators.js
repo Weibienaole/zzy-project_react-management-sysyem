@@ -1,7 +1,7 @@
 import { fromJS } from 'immutable'
-import { } from './constants'
+import { SET_THEME_KEY } from './constants'
 
-// export const setNavType = (data) => ({
-//   type: SET_NAV_TYPE,
-//   data
-// })
+export const setThemeKey = (key) => ({
+  type: SET_THEME_KEY,
+  data: key
+})
