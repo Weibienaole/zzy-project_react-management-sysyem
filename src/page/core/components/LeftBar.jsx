@@ -9,6 +9,9 @@ import { Menu } from 'antd'
 import { LeftBarSty } from '../style'
 import asyncRoutes from '../../../router/asyncRoutes'
 
+// 所有可用的route转换为menu形态list
+let allMenus = []
+
 const LeftBar = forwardRef((props, ref) => {
   const { nowSelectHeaderNavIdx, menuItemChange } = props
   const [menuLists, setMenuLists] = useState([])
@@ -18,9 +21,11 @@ const LeftBar = forwardRef((props, ref) => {
     let selectNav = asyncRoutes[nowSelectHeaderNavIdx]
     if (selectNav?.children.length) {
       const generateMenu = generateMenuItemLists(selectNav.children)
+      allMenus = generateMenu
+      const filterMenu = filterNoHiddenMenu(generateMenu)
       const { firstMenu, firstMenuItem } = returnNavDefaultPath(
         selectNav.defaultPath,
-        generateMenu
+        filterMenu
       )
       if (!firstMenu || (!firstMenuItem && !firstMenu.path)) {
         throw Error(
@@ -30,54 +35,52 @@ const LeftBar = forwardRef((props, ref) => {
       // path有值说明是一个导航，不能展开，则不进行展开，没有就说明是一个可展开的，赋值key
       setOpenKey([firstMenu.path ? null : firstMenu.key])
       setSelectedKey([firstMenu.path ? firstMenu.key : firstMenuItem.key])
-      setMenuLists(generateMenu)
+      setMenuLists(filterMenu)
     }
   }, [nowSelectHeaderNavIdx])
   // 生成menu组件可用结构
   const generateMenuItemLists = (menu) => {
-    const filterMenus = returnLeftRouteList(menu)
     const menuItems = []
-    filterMenus.forEach(
-      (
-        {
-          path,
-          defaultPath,
-          name,
-          params,
-          children = null,
-          icon = null,
-          open = false
-        },
-        index
-      ) => {
-        const n = name || params.name
-        menuItems.push({
-          key: `${asyncRoutes[nowSelectHeaderNavIdx]?.key || 'home'}-${index}-${
-            path || 'group'
-          }`,
-          label: children ? (
-            <span>{n}</span>
-          ) : (
-            <a
-              rel="nofollow noopener noreferrer"
-              href={`#${defaultPath || path}`}
-              target={open ? '_blank' : '_self'}
-            >
-              {n}
-            </a>
-          ),
-          children: children ? generateMenuItemLists(children) : null,
-          icon,
-          path
-        })
-      }
-    )
+    for (let i = 0; i < menu.length; i++) {
+      const {
+        name,
+        path,
+        defaultPath,
+        children = null,
+        params,
+        icon = null,
+        hidden = false,
+        open = false
+      } = menu[i]
+      const n = name || params.name
+      menuItems.push({
+        key: `${asyncRoutes[nowSelectHeaderNavIdx]?.key || 'home'}-${i}-${
+          path || 'group'
+        }`,
+        label: children ? (
+          <span>{n}</span>
+        ) : (
+          <a
+            rel="nofollow noopener noreferrer"
+            href={`#${defaultPath || path}`}
+            target={open ? '_blank' : '_self'}
+          >
+            {n}
+          </a>
+        ),
+        children: children ? generateMenuItemLists(children) : null,
+        icon,
+        path,
+        hidden
+      })
+    }
     return menuItems
   }
   // 对外暴露的方法
   useImperativeHandle(ref, () => ({
     update(menuIndex, itemIndex) {
-      const targetMenu = menuLists[menuIndex]
+      // 这里需要的路由数组得是包含hidden的，与core的路由文件结构和数据保持一致
+      const targetMenu = allMenus[menuIndex]
       if (typeof itemIndex === 'number') {
         setOpenKey([targetMenu.key])
         setSelectedKey([targetMenu.children[itemIndex].key])
@@ -117,35 +120,29 @@ LeftBar.propTypes = {
 
 export default LeftBar
 
-// 返回可用路由
-const returnLeftRouteList = (l) => {
-  let filterRoute = []
-  l.forEach((item) => {
-    // 二级，三级的可伸缩式控制盒子，不属于导航
-    if (!item.path && item.children) {
-      filterRoute.push({
+// 筛除hidden路由
+const filterNoHiddenMenu = (list) => {
+  const notHiddenMenuList = []
+  for (let i = 0; i < list.length; i++) {
+    const item = list[i]
+    if (!item.hidden) {
+      notHiddenMenuList.push({
         ...item,
-        children: returnLeftRouteList(item.children)
-      })
-    } else if (item.path && item.path?.indexOf('/*') === -1 && !item.hidden) {
-      // 不允许 (没有path，且不能使 /* 设置隐藏)
-      filterRoute.push({
-        ...item
+        children: item.children ? filterNoHiddenMenu(item.children) : null
       })
     }
-  })
-  return filterRoute
+  }
+  return notHiddenMenuList
 }
 
 // 返回当前路由默认选择地址
 export const returnNavDefaultPath = (target, menus) => {
-  const availableMenus = returnLeftRouteList(menus)
   if (target) {
     // 有值就找到当前当前列表复合规则的那项
     let obj = {}
     const purePath = target.split('?')[0]
-    for (let i = 0; i < availableMenus.length; i++) {
-      const menu = availableMenus[i]
+    for (let i = 0; i < menus.length; i++) {
+      const menu = menus[i]
       if (menu.path && !menu.children?.length) {
         if (menu.path === target) {
           obj = {
@@ -175,7 +172,7 @@ export const returnNavDefaultPath = (target, menus) => {
     return obj
   } else {
     // 没有默认值，指定第一个可用path
-    const firstMenu = availableMenus[0]
+    const firstMenu = menus[0]
     let firstMenuItem, itemIndex
     if (!firstMenu.path && firstMenu.children?.length) {
       firstMenuItem = firstMenu.children[0]

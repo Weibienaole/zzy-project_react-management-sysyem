@@ -142,11 +142,7 @@ const Core = () => {
         )}
         <div className="coreContent">
           {/* 面包屑 */}
-          <BreadCrumds
-            isOpen={hasNav}
-            hidden={navRoute?.hidden}
-            title={breadCrumdTil}
-          />
+          <BreadCrumds title={breadCrumdTil} />
           {/* 内容 */}
           <div className="coreView">
             <CoreView />
