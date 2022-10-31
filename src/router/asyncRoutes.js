@@ -15,6 +15,7 @@
           module: string-组件实际指向位置,
           params: {
             name: string-页面名称
+            state: 页面默认携带参数
           },
           hidden: boolean-是否在导航栏中隐藏该路由,
           open: boolean-是否从新页面打开
