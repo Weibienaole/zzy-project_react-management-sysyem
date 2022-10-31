@@ -1,7 +1,7 @@
 import styled from 'styled-components'
-import globalSty from '../../utils/global-style'
+import globalSty from '@/utils/global-style'
 import { getUrlData } from '../../utils/index'
-console.log(globalSty, 'globalSty')
+
 const minWid = '1260px'
 
 const { isOpen } = getUrlData(window.location.hash)
@@ -47,7 +47,7 @@ export const HeaderBarSty = styled.div`
   width: 100vw;
   min-width: ${minWid};
   height: 50px;
-  background-color: rgba(71, 77, 92, 0.9);
+  background-color: ${(props) => props.theme.background};
   display: flex;
   justify-content: space-between;
   .leftView {
@@ -129,6 +129,7 @@ export const LeftBarSty = styled.div`
     .ant-menu-item::after {
       display: none;
     }
+
     .ant-menu-item a:hover,
     .ant-menu-item-active,
     .ant-menu-item-selected,
@@ -138,8 +139,17 @@ export const LeftBarSty = styled.div`
     .ant-menu-submenu:hover > .ant-menu-submenu-title,
     .ant-menu-submenu:hover
       > .ant-menu-submenu-title
+      > .ant-menu-submenu-arrow.active,
+    .ant-menu-submenu:hover
+      > .ant-menu-submenu-title
+      > .ant-menu-submenu-expand-icon,
+    .ant-menu-submenu:hover
+      > .ant-menu-submenu-title
       > .ant-menu-submenu-arrow {
       color: ${globalSty.basicStyle.color} !important;
+    }
+    .ant-menu-submenu-active{
+      color: rgba(0, 0, 0, 0.85);
     }
     .ant-menu-item-selected {
       background-color: #fff !important;
@@ -151,6 +161,10 @@ export const LeftBarSty = styled.div`
         line-height: 50px !important;
         margin: 0;
         background: #f3f3f3;
+        img{
+          width: 30px;
+          height: 30px;
+        }
       }
     }
     .ant-menu-inline .ant-menu-item:not(:last-child) {

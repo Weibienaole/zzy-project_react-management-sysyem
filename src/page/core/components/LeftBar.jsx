@@ -8,11 +8,14 @@ import PropsType from 'prop-types'
 import { Menu } from 'antd'
 import { LeftBarSty } from '../style'
 import asyncRoutes from '../../../router/asyncRoutes'
+import { useNavigate } from 'react-router-dom'
 
 // 所有可用的route转换为menu形态list
 let allMenus = []
 
 const LeftBar = forwardRef((props, ref) => {
+  const navigate = useNavigate()
+
   const { nowSelectHeaderNavIdx, menuItemChange } = props
   const [menuLists, setMenuLists] = useState([])
   const [openKey, setOpenKey] = useState([])
@@ -45,9 +48,8 @@ const LeftBar = forwardRef((props, ref) => {
       const {
         name,
         path,
-        defaultPath,
         children = null,
-        params,
+        params = {},
         icon = null,
         hidden = false,
         open = false
@@ -57,25 +59,31 @@ const LeftBar = forwardRef((props, ref) => {
         key: `${asyncRoutes[nowSelectHeaderNavIdx]?.key || 'home'}-${i}-${
           path || 'group'
         }`,
-        label: children ? (
-          <span>{n}</span>
-        ) : (
-          <a
-            rel="nofollow noopener noreferrer"
-            href={`#${defaultPath || path}`}
-            target={open ? '_blank' : '_self'}
-          >
-            {n}
-          </a>
-        ),
+        label: <span>{n}</span>,
         children: children ? generateMenuItemLists(children) : null,
-        icon,
+        icon: icon ? <img src={icon} /> : null,
         path,
-        hidden
+        hidden,
+        state: params.state,
+        open
       })
     }
     return menuItems
   }
+
+  // menuItem点击
+  const menuItemHandleClick = (path, state = {}, isOpen = false) => {
+    if (isOpen) {
+      let datas = Object.keys(state)
+        .map((it) => `${it}=${state[it]}`)
+        .join('&')
+      const str = datas ? `&${datas}` : ''
+      window.open(`#${path}?isOpen=1${str}`)
+    } else {
+      navigate(path, { state: state })
+    }
+  }
+
   // 对外暴露的方法
   useImperativeHandle(ref, () => ({
     update(menuIndex, itemIndex) {
@@ -102,9 +110,16 @@ const LeftBar = forwardRef((props, ref) => {
         onOpenChange={(keys) =>
           setOpenKey(([lastKey]) => keys.filter((it) => it !== lastKey))
         }
-        onSelect={({ key, keyPath }) => {
-          menuItemChange(...keyPath)
-          setSelectedKey([key])
+        onSelect={({ item, key, keyPath }) => {
+          menuItemHandleClick(
+            key.slice(key.lastIndexOf('-/') + 1),
+            item.props.state,
+            item.props.open
+          )
+          if (!item.props.open) {
+            menuItemChange(...keyPath)
+            setSelectedKey([key])
+          }
         }}
       />
     </LeftBarSty>
